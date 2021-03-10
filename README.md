@@ -10,8 +10,34 @@ Use GoLand IDE or...
 
 Sample output:
 ```
+Active Wing missions
+Gallite, 836, 43796408
+Gallite, 740, 38813776
+Gallite, 988, 50000000
+Gallite, 1000, 50000000
+Bertrandite, 884, 50000000
+Gallite, 816, 42670360
+Gallite, 748, 39228996
+Bertrandite, 620, 50000000
+Bertrandite, 988, 50000000
+Indite, 888, 44366752
+Gallite, 892, 46526940
+Indite, 848, 42336592
+Bertrandite, 628, 50000000
+Indite, 880, 44101520
+Gallite, 968, 50000000
+Indite, 856, 42909824
+Gallite, 1004, 50000000
+Bertrandite, 692, 50000000
+Gallite, 960, 50000000
+Gold, 192, 40523020
+Gallite, 824, 42997580
+Gallite, 1004, 50000000
+Gallite, 844, 44211628
+
+Total Wing Demand
+Gallite = 11624
 Gold = 192
-Indite = 3472
-Gallite = 10808
 Bertrandite = 3812
+Indite = 3472
 ```
