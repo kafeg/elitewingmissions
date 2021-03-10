@@ -1,5 +1,5 @@
 # elitelog
-Some info from Elite Dangerous logs http://edcodex.info/?m=doc
+Some info from Elite Dangerous Player Journal https://elite-journal.readthedocs.io/en/latest/
 
 # Run
 
