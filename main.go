@@ -83,7 +83,16 @@ func hCargoDepot(json UnstructuredJson) {
 	missionId := json["MissionID"].(float64)
 	if _, ok := activeWingMissions[missionId]; ok {
 
-		activeWingMissions[missionId].Count -= json["ItemsDelivered"].(float64)
+		//fmt.Println(json)
+
+		if val, ok := json["UpdateType"]; ok && val == "WingUpdate" {
+			activeWingMissions[missionId].Count = json["TotalItemsToDeliver"].(float64) - json["ItemsDelivered"].(float64)
+		}
+
+		if val, ok := json["UpdateType"]; ok && val == "Deliver" {
+			//fmt.Println(json)
+			activeWingMissions[missionId].Count -= json["Count"].(float64)
+		}
 
 		//if json["UpdateType"].(string) == "WingUpdate" {
 			//activeWingMissions[missionId].Count += json["ItemsCollected"].(float64)
