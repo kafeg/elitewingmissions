@@ -1,5 +1,5 @@
-# elitelog
-Some info from Elite Dangerous Player Journal https://elite-journal.readthedocs.io/en/latest/
+# elite wing missions
+Some info from Elite Dangerous Player Journal https://elite-journal.readthedocs.io/en/latest/ for Elite Wing Missions to keep tracking for current commodities count, required to be delivered to complete missions.
 
 # Run
 
