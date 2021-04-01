@@ -216,19 +216,30 @@ func main() {
 	fmt.Println("")
 	fmt.Println("---")
 	fmt.Println("Total Pirate KillCount Demand")
-	totalPirateActiveWingMissionsDemand := make(map[string]float64)
+	type PFields struct {
+		KillCount float64
+		Reward float64
+	}
+	totalPirateActiveWingMissionsDemand := make(map[string]PFields)
 	for _, v := range activePirateWingMissions {
 		if _, ok := totalPirateActiveWingMissionsDemand[v.Faction]; ok {
 			// append
-			totalPirateActiveWingMissionsDemand[v.Faction] = totalPirateActiveWingMissionsDemand[v.Faction] + v.KillCount
+			pfield := totalPirateActiveWingMissionsDemand[v.Faction]
+			pfield.KillCount = pfield.KillCount + v.KillCount
+			pfield.Reward = pfield.Reward + v.Reward
+			totalPirateActiveWingMissionsDemand[v.Faction] = pfield
 		} else {
 			// just insert
-			totalPirateActiveWingMissionsDemand[v.Faction] = v.KillCount
+			totalPirateActiveWingMissionsDemand[v.Faction] = PFields{v.KillCount, v.Reward}
 		}
 	}
 
+	totalReward := 0.0
 	for k, v := range totalPirateActiveWingMissionsDemand {
-		fmt.Printf("%s = %v\n", k, v)
+		fmt.Printf("%s = %v, %v\n", k, v.KillCount, strconv.FormatFloat(v.Reward, 'f', -1, 64))
+		totalReward += v.Reward
 	}
 
+	fmt.Println("")
+	fmt.Printf("Total Reward = %v\n", strconv.FormatFloat(totalReward, 'f', -1, 64))
 }
