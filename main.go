@@ -241,5 +241,5 @@ func main() {
 	}
 
 	fmt.Println("")
-	fmt.Printf("Total Reward = %v\n", strconv.FormatFloat(totalReward, 'f', -1, 64))
+	fmt.Printf("Total Reward = %v, *4 = %v\n", strconv.FormatFloat(totalReward, 'f', -1, 64), strconv.FormatFloat(totalReward * 4, 'f', -1, 64))
 }
