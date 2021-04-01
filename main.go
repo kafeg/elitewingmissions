@@ -17,15 +17,23 @@ type HandlerFunction func (json UnstructuredJson)
 
 
 // --- data structs
-type ActiveMissions struct {
+type TradeMissions struct {
 	MissionID float64
 	Reward float64
 	Commodity string
 	Count float64
 }
 
+type PirateMissions struct {
+	MissionID float64
+	Reward float64
+	Faction string
+	KillCount float64
+}
+
 // --- data storages
-var activeWingMissions = make(map[float64]*ActiveMissions) // active mission stricts indexed by the mission ids
+var activeWingMissions = make(map[float64]*TradeMissions)       // active mission struct indexed by the mission ids
+var activePirateWingMissions = make(map[float64]PirateMissions) // active mission struct indexed by the mission ids
 
 // --- event handlers
 
@@ -41,7 +49,7 @@ func hMissionAccepted(json UnstructuredJson) {
 			commodityName = strings.ReplaceAll(commodityName, "$", "")
 			commodityName = strings.ReplaceAll(commodityName, "_Name;", "")
 
-			activeWingMissions[missionId] = &ActiveMissions{
+			activeWingMissions[missionId] = &TradeMissions{
 				missionId,
 				json["Reward"].(float64),
 				commodityName,
@@ -49,6 +57,23 @@ func hMissionAccepted(json UnstructuredJson) {
 			}
 		}
 		//fmt.Printf("MissionAccepted, %v\n", missionId)
+	}
+
+	// check PIRATE Wing missions
+	if _, ok := activePirateWingMissions[missionId]; !ok {
+
+		if json["KillCount"] != nil && json["Faction"] != nil  && json["TargetFaction"] != nil {
+
+			faction := json["Faction"].(string)
+
+			activePirateWingMissions[missionId] = PirateMissions{
+				missionId,
+				json["Reward"].(float64),
+				faction,
+				json["KillCount"].(float64),
+			}
+		}
+		//fmt.Printf("MissionAccepted, %v\n", json)
 	}
 
 	//todo other mission handlers ...
@@ -60,6 +85,10 @@ func hMissionCompleted(json UnstructuredJson) {
 	if _, ok := activeWingMissions[missionId]; ok {
 		delete(activeWingMissions, missionId)
 	}
+
+	if _, ok := activePirateWingMissions[missionId]; ok {
+		delete(activePirateWingMissions, missionId)
+	}
 }
 
 // When Written: when a mission has been abandoned
@@ -68,6 +97,10 @@ func hMissionAbandoned(json UnstructuredJson) {
 	if _, ok := activeWingMissions[missionId]; ok {
 		delete(activeWingMissions, missionId)
 	}
+
+	if _, ok := activePirateWingMissions[missionId]; ok {
+		delete(activePirateWingMissions, missionId)
+	}
 }
 
 // When Written: when a mission has failed
@@ -75,6 +108,10 @@ func hMissionFailed(json UnstructuredJson) {
 	missionId := json["MissionID"].(float64)
 	if _, ok := activeWingMissions[missionId]; ok {
 		delete(activeWingMissions, missionId)
+	}
+
+	if _, ok := activePirateWingMissions[missionId]; ok {
+		delete(activePirateWingMissions, missionId)
 	}
 }
 
@@ -172,6 +209,25 @@ func main() {
 	}
 
 	for k, v := range totalActiveWingMissionsDemand {
+		fmt.Printf("%s = %v\n", k, v)
+	}
+
+	//calc active pirate wing missions demand
+	fmt.Println("")
+	fmt.Println("---")
+	fmt.Println("Total Pirate KillCount Demand")
+	totalPirateActiveWingMissionsDemand := make(map[string]float64)
+	for _, v := range activePirateWingMissions {
+		if _, ok := totalPirateActiveWingMissionsDemand[v.Faction]; ok {
+			// append
+			totalPirateActiveWingMissionsDemand[v.Faction] = totalPirateActiveWingMissionsDemand[v.Faction] + v.KillCount
+		} else {
+			// just insert
+			totalPirateActiveWingMissionsDemand[v.Faction] = v.KillCount
+		}
+	}
+
+	for k, v := range totalPirateActiveWingMissionsDemand {
 		fmt.Printf("%s = %v\n", k, v)
 	}
 
