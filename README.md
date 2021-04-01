@@ -40,12 +40,4 @@ Gallite = 11624
 Gold = 192
 Bertrandite = 3812
 Indite = 3472
-
-Total Pirate KillCount Demand
-LTT 4599 Comp = 199, 96024414
-Dark Wheel = 261, 126161118
-Dark Enterprise = 414, 199626586
-Dark Side = 414, 199626586
-
-Total Reward = 677742882
 ```
