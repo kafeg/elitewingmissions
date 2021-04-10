@@ -256,12 +256,13 @@ func calcPirateMissions() {
 	//calc active pirate wing missions demand
 	fmt.Println("")
 	fmt.Println("---")
-	fmt.Println("Total Pirate KillCount Demand")
+	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(currentEarlierTimestampForBounties,0))
 	type PFields struct {
 		KillCount float64
 		Reward float64
 		CommanderName string
 		MissionCount int
+		AllRewards string
 	}
 	totalPirateActiveWingMissionsDemand := make(map[string]PFields)
 	for _, v := range activePirateWingMissions {
@@ -271,10 +272,16 @@ func calcPirateMissions() {
 			pfield.KillCount = pfield.KillCount + v.KillCount
 			pfield.Reward = pfield.Reward + v.Reward
 			pfield.MissionCount++
+			pfield.AllRewards = pfield.AllRewards + ", " + NearestThousandFormat(v.Reward)
 			totalPirateActiveWingMissionsDemand[v.Faction] = pfield
 		} else {
 			// just insert
-			totalPirateActiveWingMissionsDemand[v.Faction] = PFields{v.KillCount, v.Reward, v.CommanderName, 1}
+			totalPirateActiveWingMissionsDemand[v.Faction] = PFields{
+				v.KillCount,
+				v.Reward,
+				v.CommanderName,
+				1,
+				NearestThousandFormat(v.Reward)}
 		}
 	}
 
@@ -290,13 +297,13 @@ func calcPirateMissions() {
 	totalMissions := 0
 	for _, key := range keys {
 		v := totalPirateActiveWingMissionsDemand[key]
-		fmt.Printf("%13s, %33s, %4v, %2v, %v\n", v.CommanderName, key, v.KillCount, v.MissionCount, strconv.FormatFloat(v.Reward, 'f', -1, 64))
+		fmt.Printf("%13s; %33s; %4v; %2v; %v; %s\n", v.CommanderName, key, v.KillCount, v.MissionCount, NearestThousandFormat(v.Reward), v.AllRewards)
 		totalReward += v.Reward
 		totalKillCount += v.KillCount
 		totalMissions += v.MissionCount
 	}
-	fmt.Printf("%13s, %33s, %4s, %2v, %v\n", "Total", "", "", totalMissions, strconv.FormatFloat(totalReward * 4, 'f', -1, 64))
-	fmt.Printf("%13s, %33s, %4v, %2s, %s\n", "Bounties done", "", pirateBountiesCount, "", "")
+	fmt.Printf("%13s; %33s; %4s; %2v; %v\n", "Total", "", "", totalMissions, NearestThousandFormat(totalReward * 4.0))
+	fmt.Printf("%13s; %33s; %4v; %2s; %s\n", "Bounties done", "", pirateBountiesCount, "", "")
 }
 
 func main() {
@@ -319,7 +326,7 @@ func main() {
 			currentEarlierTimestampForBounties = v.Timestamp
 		}
 	}
-    //fmt.Println("Earlier Mission:", time.Unix(currentEarlierTimestampForBounties,0))
+    fmt.Println("Earlier Mission:", time.Unix(currentEarlierTimestampForBounties,0))
 
 	//calc victim factions
 	for _, v := range activePirateWingMissions {
