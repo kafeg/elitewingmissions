@@ -44,7 +44,8 @@ var pirateBountiesCount = 0
 
 var victimFactions []string // append works on nil slices.
 var currentCommanderName string
-var bountiesTimestamps = make(map[string]int64)
+var bountiesTimestampsStart = make(map[string]int64)
+var bountiesTimestampsEnd = make(map[string]int64)
 
 // parser
 func handleEvents(handlers map[string] HandlerFunction) {
@@ -121,7 +122,7 @@ func hMissionAccepted(json UnstructuredJson) {
 
 			//layout := "2021-04-08T12:08:50Z"
 			timestamp, _ := time.Parse(time.RFC3339 /*layout*/, json["timestamp"].(string))
-			bountiesTimestamps[currentCommanderName] = timestamp.UTC().Unix()
+			bountiesTimestampsStart[currentCommanderName] = timestamp.UTC().Unix()
 
 			//if err != nil {
 			//	fmt.Println("ERR", err)
@@ -205,12 +206,12 @@ func hCargoDepot(json UnstructuredJson) {
 
 func hCommander(json UnstructuredJson) {
 	currentCommanderName = json["Name"].(string)
-	bountiesTimestamps[currentCommanderName] = time.Now().UTC().Unix()
+	bountiesTimestampsStart[currentCommanderName] = time.Now().UTC().Unix()
 }
 
 func hBounty(json UnstructuredJson) {
 	timestamp, _ := time.Parse(time.RFC3339 /*layout*/, json["timestamp"].(string))
-	if (timestamp.Unix() > bountiesTimestamps[currentCommanderName]) {
+	if (timestamp.Unix() > bountiesTimestampsStart[currentCommanderName]) {
 		//fmt.Println(timestamp.Unix(), json["VictimFaction"].(string))
 
 		contains := false
@@ -257,7 +258,7 @@ func calcPirateMissions() {
 	//calc active pirate wing missions demand
 	fmt.Println("")
 	fmt.Println("---")
-	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(bountiesTimestamps[currentCommanderName],0))
+	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(bountiesTimestampsStart[currentCommanderName],0), "To:", time.Unix(bountiesTimestampsEnd[currentCommanderName],0))
 	type PFields struct {
 		KillCount float64
 		Reward float64
@@ -293,7 +294,7 @@ func calcPirateMissions() {
 	}
 	sort.Slice(keys, func(i, j int) bool { return totalPirateActiveWingMissionsDemand[keys[i]].KillCount < totalPirateActiveWingMissionsDemand[keys[j]].KillCount })
 
-	fmt.Printf("%13s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Timestamp", "Money Per Mission")
+	fmt.Printf("%13s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Money Per Mission")
 
 	totalReward := 0.0
 	totalKillCount := 0.0
@@ -312,8 +313,8 @@ func calcPirateMissions() {
 	}
 	fmt.Printf("%13s, %34v, %4s, %4v, %15s\n", "Total", len(totalPirateActiveWingMissionsDemand), "", totalMissions, FormatNumber(totalReward))
 	fmt.Printf("%13s, %34s, %4s, %4s, %15s\n", "Total, *4", "", "", "", FormatNumber(totalReward * 4))
-	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount + 4, "", "")
-	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount + 4), "", "")
+	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount, "", "")
+	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount), "", "")
 }
 
 func FormatNumber(n float64) string {
@@ -363,11 +364,18 @@ func main() {
 
 	//get earlier timestamp for active missions
 	for _, v := range activePirateWingMissions {
-		if v.Timestamp < bountiesTimestamps[currentCommanderName] {
-			bountiesTimestamps[currentCommanderName] = v.Timestamp
+		if v.Timestamp < bountiesTimestampsStart[currentCommanderName] {
+			bountiesTimestampsStart[currentCommanderName] = v.Timestamp
 		}
 	}
-    fmt.Println("Earlier Mission:", time.Unix(bountiesTimestamps[currentCommanderName],0))
+    //fmt.Println("Earlier Mission:", time.Unix(bountiesTimestampsStart[currentCommanderName],0))
+
+    //get last timestamp
+	for _, v := range activePirateWingMissions {
+		if v.Timestamp > bountiesTimestampsStart[currentCommanderName] {
+			bountiesTimestampsEnd[currentCommanderName] = v.Timestamp
+		}
+	}
 
 	//calc victim factions
 	for _, v := range activePirateWingMissions {
