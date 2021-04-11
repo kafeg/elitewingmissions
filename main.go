@@ -44,7 +44,7 @@ var pirateBountiesCount = 0
 
 var victimFactions []string // append works on nil slices.
 var currentCommanderName string
-var currentEarlierTimestampForBounties = time.Now().UTC().Unix()
+var bountiesTimestamps = make(map[string]int64)
 
 // parser
 func handleEvents(handlers map[string] HandlerFunction) {
@@ -121,7 +121,7 @@ func hMissionAccepted(json UnstructuredJson) {
 
 			//layout := "2021-04-08T12:08:50Z"
 			timestamp, _ := time.Parse(time.RFC3339 /*layout*/, json["timestamp"].(string))
-			currentEarlierTimestampForBounties = timestamp.UTC().Unix()
+			bountiesTimestamps[currentCommanderName] = timestamp.UTC().Unix()
 
 			//if err != nil {
 			//	fmt.Println("ERR", err)
@@ -205,11 +205,12 @@ func hCargoDepot(json UnstructuredJson) {
 
 func hCommander(json UnstructuredJson) {
 	currentCommanderName = json["Name"].(string)
+	bountiesTimestamps[currentCommanderName] = time.Now().UTC().Unix()
 }
 
 func hBounty(json UnstructuredJson) {
 	timestamp, _ := time.Parse(time.RFC3339 /*layout*/, json["timestamp"].(string))
-	if (timestamp.Unix() > currentEarlierTimestampForBounties) {
+	if (timestamp.Unix() > bountiesTimestamps[currentCommanderName]) {
 		//fmt.Println(timestamp.Unix(), json["VictimFaction"].(string))
 
 		contains := false
@@ -256,7 +257,7 @@ func calcPirateMissions() {
 	//calc active pirate wing missions demand
 	fmt.Println("")
 	fmt.Println("---")
-	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(currentEarlierTimestampForBounties,0))
+	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(bountiesTimestamps[currentCommanderName],0))
 	type PFields struct {
 		KillCount float64
 		Reward float64
@@ -272,7 +273,7 @@ func calcPirateMissions() {
 			pfield.KillCount = pfield.KillCount + v.KillCount
 			pfield.Reward = pfield.Reward + v.Reward
 			pfield.MissionCount++
-			pfield.AllRewards = pfield.AllRewards + ", " + NearestThousandFormat(v.Reward)
+			pfield.AllRewards = pfield.AllRewards + " / " + FormatNumber(v.Reward)
 			totalPirateActiveWingMissionsDemand[v.Faction] = pfield
 		} else {
 			// just insert
@@ -281,7 +282,7 @@ func calcPirateMissions() {
 				v.Reward,
 				v.CommanderName,
 				1,
-				NearestThousandFormat(v.Reward)}
+				FormatNumber(v.Reward)}
 		}
 	}
 
@@ -292,21 +293,61 @@ func calcPirateMissions() {
 	}
 	sort.Slice(keys, func(i, j int) bool { return totalPirateActiveWingMissionsDemand[keys[i]].KillCount < totalPirateActiveWingMissionsDemand[keys[j]].KillCount })
 
+	fmt.Printf("%13s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Timestamp", "Money Per Mission")
+
 	totalReward := 0.0
 	totalKillCount := 0.0
 	totalMissions := 0
+	var maxKillCount int64 = 0
 	for _, key := range keys {
 		v := totalPirateActiveWingMissionsDemand[key]
-		fmt.Printf("%13s; %33s; %4v; %2v; %v; %s\n", v.CommanderName, key, v.KillCount, v.MissionCount, NearestThousandFormat(v.Reward), v.AllRewards)
+		fmt.Printf("%13s, %34s, %4v, %4v, %15s, %50s\n", v.CommanderName, key, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
 		totalReward += v.Reward
 		totalKillCount += v.KillCount
 		totalMissions += v.MissionCount
+
+		if int64(v.KillCount) > maxKillCount {
+			maxKillCount = int64(v.KillCount)
+		}
 	}
-	fmt.Printf("%13s; %33s; %4s; %2v; %v\n", "Total", "", "", totalMissions, NearestThousandFormat(totalReward * 4.0))
-	fmt.Printf("%13s; %33s; %4v; %2s; %s\n", "Bounties done", "", pirateBountiesCount, "", "")
+	fmt.Printf("%13s, %34v, %4s, %4v, %15s\n", "Total", len(totalPirateActiveWingMissionsDemand), "", totalMissions, FormatNumber(totalReward))
+	fmt.Printf("%13s, %34s, %4s, %4s, %15s\n", "Total, *4", "", "", "", FormatNumber(totalReward * 4))
+	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount + 4, "", "")
+	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount + 4), "", "")
+}
+
+func FormatNumber(n float64) string {
+	return FormatNumberInt(int64(n))
+}
+
+func FormatNumberInt(n int64) string {
+	in := strconv.FormatInt(n, 10)
+	numOfDigits := len(in)
+	if n < 0 {
+		numOfDigits-- // First character is the - sign (not a digit)
+	}
+	numOfCommas := (numOfDigits - 1) / 3
+
+	out := make([]byte, len(in)+numOfCommas)
+	if n < 0 {
+		in, out[0] = in[1:], '-'
+	}
+
+	for i, j, k := len(in)-1, len(out)-1, 0; ; i, j = i-1, j-1 {
+		out[j] = in[i]
+		if i == 0 {
+			return string(out)
+		}
+		if k++; k == 3 {
+			j, k = j-1, 0
+			out[j] = ','
+		}
+	}
 }
 
 func main() {
+
+	FormatNumber(2068155188)
 
 	//handlers https://elite-journal.readthedocs.io
 	handlers := map[string] HandlerFunction {
@@ -322,11 +363,11 @@ func main() {
 
 	//get earlier timestamp for active missions
 	for _, v := range activePirateWingMissions {
-		if v.Timestamp < currentEarlierTimestampForBounties {
-			currentEarlierTimestampForBounties = v.Timestamp
+		if v.Timestamp < bountiesTimestamps[currentCommanderName] {
+			bountiesTimestamps[currentCommanderName] = v.Timestamp
 		}
 	}
-    fmt.Println("Earlier Mission:", time.Unix(currentEarlierTimestampForBounties,0))
+    fmt.Println("Earlier Mission:", time.Unix(bountiesTimestamps[currentCommanderName],0))
 
 	//calc victim factions
 	for _, v := range activePirateWingMissions {
