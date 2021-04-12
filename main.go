@@ -346,9 +346,7 @@ func FormatNumberInt(n int64) string {
 	}
 }
 
-func main() {
-
-	FormatNumber(2068155188)
+func recalcAll() {
 
 	//handlers https://elite-journal.readthedocs.io
 	handlers := map[string] HandlerFunction {
@@ -368,9 +366,9 @@ func main() {
 			bountiesTimestampsStart[currentCommanderName] = v.Timestamp
 		}
 	}
-    //fmt.Println("Earlier Mission:", time.Unix(bountiesTimestampsStart[currentCommanderName],0))
+	//fmt.Println("Earlier Mission:", time.Unix(bountiesTimestampsStart[currentCommanderName],0))
 
-    //get last timestamp
+	//get last timestamp
 	for _, v := range activePirateWingMissions {
 		if v.Timestamp > bountiesTimestampsStart[currentCommanderName] {
 			bountiesTimestampsEnd[currentCommanderName] = v.Timestamp
@@ -402,4 +400,8 @@ func main() {
 	calcTradeMissions()
 
 	calcPirateMissions()
+}
+
+func main() {
+	recalcAll()
 }
