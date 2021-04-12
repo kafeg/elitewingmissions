@@ -294,7 +294,7 @@ func calcPirateMissions() {
 	}
 	sort.Slice(keys, func(i, j int) bool { return totalPirateActiveWingMissionsDemand[keys[i]].KillCount < totalPirateActiveWingMissionsDemand[keys[j]].KillCount })
 
-	fmt.Printf("%13s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Money Per Mission")
+	fmt.Printf("%20s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Money Per Mission")
 
 	totalReward := 0.0
 	totalKillCount := 0.0
@@ -302,7 +302,7 @@ func calcPirateMissions() {
 	var maxKillCount int64 = 0
 	for _, key := range keys {
 		v := totalPirateActiveWingMissionsDemand[key]
-		fmt.Printf("%13s, %34s, %4v, %4v, %15s, %50s\n", v.CommanderName, key, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
+		fmt.Printf("%20s, %34s, %4v, %4v, %15s, %50s\n", v.CommanderName, key, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
 		totalReward += v.Reward
 		totalKillCount += v.KillCount
 		totalMissions += v.MissionCount
@@ -311,10 +311,10 @@ func calcPirateMissions() {
 			maxKillCount = int64(v.KillCount)
 		}
 	}
-	fmt.Printf("%13s, %34v, %4s, %4v, %15s\n", "Total", len(totalPirateActiveWingMissionsDemand), "", totalMissions, FormatNumber(totalReward))
-	fmt.Printf("%13s, %34s, %4s, %4s, %15s\n", "Total, *4", "", "", "", FormatNumber(totalReward * 4))
-	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount, "", "")
-	fmt.Printf("%13s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount), "", "")
+	fmt.Printf("%20s, %34v, %4s, %4v, %15s\n", "Total", len(totalPirateActiveWingMissionsDemand), "", totalMissions, FormatNumber(totalReward))
+	fmt.Printf("%20s, %34s, %4s, %4s, %15s\n", "Total, *4", "", "", "", FormatNumber(totalReward * 4))
+	fmt.Printf("%20s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount, "", "")
+	fmt.Printf("%20s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount), "", "")
 }
 
 func FormatNumber(n float64) string {
