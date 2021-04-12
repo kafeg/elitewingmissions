@@ -257,64 +257,100 @@ func calcTradeMissions() {
 func calcPirateMissions() {
 	//calc active pirate wing missions demand
 	fmt.Println("")
-	fmt.Println("---")
-	fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(bountiesTimestampsStart[currentCommanderName],0), "To:", time.Unix(bountiesTimestampsEnd[currentCommanderName],0))
+	fmt.Println("--- --- --- --- --- --- --- --- --- --- --- ---")
+	fmt.Println("")
+	//fmt.Println("Total Pirate KillCount Demand. From:", time.Unix(bountiesTimestampsStart[currentCommanderName],0), "To:", time.Unix(bountiesTimestampsEnd[currentCommanderName],0))
+
+	fmt.Println("Total Pirate KillCount Demand.")
+	fmt.Println("")
+
 	type PFields struct {
 		KillCount float64
 		Reward float64
 		CommanderName string
+		Faction string
 		MissionCount int
 		AllRewards string
 	}
-	totalPirateActiveWingMissionsDemand := make(map[string]PFields)
+
+	//add uniq cmdr to list
+	var cmdrs []string
 	for _, v := range activePirateWingMissions {
-		if _, ok := totalPirateActiveWingMissionsDemand[v.Faction]; ok {
-			// append
-			pfield := totalPirateActiveWingMissionsDemand[v.Faction]
-			pfield.KillCount = pfield.KillCount + v.KillCount
-			pfield.Reward = pfield.Reward + v.Reward
-			pfield.MissionCount++
-			pfield.AllRewards = pfield.AllRewards + " / " + FormatNumber(v.Reward)
-			totalPirateActiveWingMissionsDemand[v.Faction] = pfield
-		} else {
-			// just insert
-			totalPirateActiveWingMissionsDemand[v.Faction] = PFields{
-				v.KillCount,
-				v.Reward,
-				v.CommanderName,
-				1,
-				FormatNumber(v.Reward)}
+		//fmt.Println(v.CommanderName, v.Faction, v.Reward, v.KillCount)
+
+		contains := false
+		for _, val := range cmdrs {
+			if strings.Contains(v.CommanderName, val) {
+				contains = true
+				break
+			}
+		}
+
+		if !contains {
+			cmdrs = append(cmdrs, v.CommanderName)
 		}
 	}
 
-	//sort keys by value
-	keys := make([]string, 0, len(totalPirateActiveWingMissionsDemand))
-	for key := range totalPirateActiveWingMissionsDemand {
-		keys = append(keys, key)
-	}
-	sort.Slice(keys, func(i, j int) bool { return totalPirateActiveWingMissionsDemand[keys[i]].KillCount < totalPirateActiveWingMissionsDemand[keys[j]].KillCount })
+	for _, cmdr := range cmdrs {
+		fmt.Println("--- CMDR", cmdr)
+		totalPirateActiveWingMissionsDemand := make(map[string]PFields)
+		for _, v := range activePirateWingMissions {
 
-	fmt.Printf("%20s, %34s, %4s, %4s, %15s, %50s\n", "CMDR", "Fraction", "Kill", "Mssn", "Total", "Money Per Mission")
+			if cmdr != v.CommanderName {
+				continue
+			}
 
-	totalReward := 0.0
-	totalKillCount := 0.0
-	totalMissions := 0
-	var maxKillCount int64 = 0
-	for _, key := range keys {
-		v := totalPirateActiveWingMissionsDemand[key]
-		fmt.Printf("%20s, %34s, %4v, %4v, %15s, %50s\n", v.CommanderName, key, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
-		totalReward += v.Reward
-		totalKillCount += v.KillCount
-		totalMissions += v.MissionCount
-
-		if int64(v.KillCount) > maxKillCount {
-			maxKillCount = int64(v.KillCount)
+			if _, ok := totalPirateActiveWingMissionsDemand[v.CommanderName+"_"+v.Faction]; ok {
+				// append
+				pfield := totalPirateActiveWingMissionsDemand[v.CommanderName+"_"+v.Faction]
+				pfield.KillCount = pfield.KillCount + v.KillCount
+				pfield.Reward = pfield.Reward + v.Reward
+				pfield.MissionCount++
+				pfield.AllRewards = pfield.AllRewards + " / " + FormatNumber(v.Reward)
+				totalPirateActiveWingMissionsDemand[v.CommanderName+"_"+v.Faction] = pfield
+			} else {
+				// just insert
+				totalPirateActiveWingMissionsDemand[v.CommanderName+"_"+v.Faction] = PFields{
+					v.KillCount,
+					v.Reward,
+					v.CommanderName,
+					v.Faction,
+					1,
+					FormatNumber(v.Reward)}
+			}
 		}
+
+		//sort keys by value
+		keys := make([]string, 0, len(totalPirateActiveWingMissionsDemand))
+		for key := range totalPirateActiveWingMissionsDemand {
+			keys = append(keys, key)
+		}
+		sort.Slice(keys, func(i, j int) bool { return totalPirateActiveWingMissionsDemand[keys[i]].KillCount < totalPirateActiveWingMissionsDemand[keys[j]].KillCount })
+
+		fmt.Printf("%34s, %4s, %4s, %15s, %75s\n", "Faction", "Kill", "Mssn", "Total", "Money Per Mission")
+
+		totalReward := 0.0
+		totalKillCount := 0.0
+		totalMissions := 0
+		var maxKillCount int64 = 0
+		for _, key := range keys {
+			v := totalPirateActiveWingMissionsDemand[key]
+			fmt.Printf("%34s, %4v, %4v, %15s, %75s\n", v.Faction, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
+			totalReward += v.Reward
+			totalKillCount += v.KillCount
+			totalMissions += v.MissionCount
+
+			if int64(v.KillCount) > maxKillCount {
+				maxKillCount = int64(v.KillCount)
+			}
+		}
+		fmt.Printf("%34s, %4v  %4v, %15s\n", "Total", "", totalMissions, FormatNumber(totalReward))
+		fmt.Printf("%34s, %4s  %4s  %15s\n", "Total*4", "", "", FormatNumber(totalReward*4))
+		fmt.Printf("%34s, %4v  %4s  %15s\n", "Completed", pirateBountiesCount, "", "")
+		fmt.Printf("%34s, %4v  %4s  %15s\n", "Remnain", maxKillCount-int64(pirateBountiesCount), "", "")
+		fmt.Println("")
+		fmt.Println("")
 	}
-	fmt.Printf("%20s, %34v, %4s, %4v, %15s\n", "Total", len(totalPirateActiveWingMissionsDemand), "", totalMissions, FormatNumber(totalReward))
-	fmt.Printf("%20s, %34s, %4s, %4s, %15s\n", "Total, *4", "", "", "", FormatNumber(totalReward * 4))
-	fmt.Printf("%20s, %34s, %4v, %4s, %15s\n", "Completed", "", pirateBountiesCount, "", "")
-	fmt.Printf("%20s, %34s, %4v, %4s, %15s\n", "Remaining", "", maxKillCount - int64(pirateBountiesCount), "", "")
 }
 
 func FormatNumber(n float64) string {
