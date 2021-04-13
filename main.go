@@ -259,7 +259,7 @@ func calcPirateMissions() {
 	}
 
 	fmt.Println("--- Total over all")
-	fmt.Printf("%34s, %4s, %4s, %6s, %33s\n", "CMDR", "Max", "Done", "Remain", "Missions collecting time")
+	fmt.Printf("%34s, %4s, %4s, %6s, %32s\n", "CMDR", "Max", "Done", "Remain", "Missions collecting time")
 	for _, cmdr := range cmdrs {
 		t1 := time.Unix(getBountyTimestamps(activePirateMissions)[cmdr].Start, 0)
 		t1f := fmt.Sprintf("%02d-%02d %02d:%02d", t1.Month(), t1.Day(), t1.Hour(), t1.Minute())
@@ -267,7 +267,7 @@ func calcPirateMissions() {
 		t2 := time.Unix(getBountyTimestamps(activePirateMissions)[cmdr].End, 0)
 		t2f := fmt.Sprintf("%02d-%02d %02d:%02d", t2.Month(), t2.Day(), t2.Hour(), t2.Minute())
 
-		fmt.Printf("%34s, %4v, %4v, %6v, %11s -> %11s, %4vh\n", cmdr, overAllMaxKillCount[cmdr], overAllCompleted[cmdr], overAllRemains[cmdr], t1f, t2f, strconv.FormatFloat(t2.Sub(t1).Hours(), 'f', 2, 64))
+		fmt.Printf("%34s, %4v, %4v, %6v, %11s -> %11s, %3vm\n", cmdr, overAllMaxKillCount[cmdr], overAllCompleted[cmdr], overAllRemains[cmdr], t1f, t2f, strconv.FormatFloat(t2.Sub(t1).Minutes(), 'f', 0, 64))
 	}
 	fmt.Println("")
 	fmt.Printf("%34s, %4v, %6v\n", "Total missn/reward", overallTotalMissions, FormatNumber(overallTotalRewardX4))
