@@ -15,7 +15,7 @@ import (
 // --- consts
 type UnstructuredJson map[string]interface{}
 type HandlerFunction func (json UnstructuredJson)
-
+const readIntervalInSecs = 3600 * 24 * 2 //last 3 days
 
 // --- data structs
 type TradeMission struct {
@@ -60,12 +60,14 @@ func eliteDirs() [2]string {
 // parser
 func handleEvents(handlers map[string] HandlerFunction) {
 
+	maxModTime := time.Now().Unix() - readIntervalInSecs
+
 	for _, dir := range eliteDirs() {
 
 		//parse each file and call handler for row if it exists
 		items, _ := ioutil.ReadDir(dir)
 		for _, item := range items {
-			if strings.HasPrefix(item.Name(), "Journal") && strings.HasSuffix(item.Name(), ".log") {
+			if item.ModTime().Unix() > maxModTime && strings.HasPrefix(item.Name(), "Journal") && strings.HasSuffix(item.Name(), ".log") {
 				//fmt.Println(item.Name())
 
 				inFile, _ := os.Open(dir + "\\" + item.Name())
@@ -305,6 +307,11 @@ func calcPirateMissions() {
 		}
 	}
 
+	sort.Strings(cmdrs)
+
+	overallTotalMissions := 0
+	overallTotalRewardX4 := 0.0
+
 	for _, cmdr := range cmdrs {
 		fmt.Println("--- CMDR", cmdr)
 		totalPirateActiveWingMissionsDemand := make(map[string]PFields)
@@ -363,8 +370,12 @@ func calcPirateMissions() {
 		fmt.Printf("%34s, %4v  %4s  %15s\n", "Completed", pirateBountiesCount, "", "")
 		fmt.Printf("%34s, %4v  %4s  %15s\n", "Remnain", maxKillCount-int64(pirateBountiesCount), "", "")
 		fmt.Println("")
-		fmt.Println("")
+		overallTotalMissions = overallTotalMissions + totalMissions
+		overallTotalRewardX4 = overallTotalRewardX4 + totalReward*4
 	}
+
+	fmt.Printf("%34s, %4v  %4v, %15s\n", "OverAllTotal", "", overallTotalMissions, FormatNumber(overallTotalRewardX4))
+	fmt.Println("")
 }
 
 func FormatNumber(n float64) string {
