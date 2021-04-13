@@ -268,7 +268,7 @@ func calcPirateMissions() {
 		t2f := fmt.Sprintf("%02d-%02d %02d:%02d", t2.Month(), t2.Day(), t2.Hour(), t2.Minute())
 
 		collectingTime := strconv.FormatFloat(t2.Sub(t1).Minutes(), 'f', 0, 64)
-		remainingTime := float64(overAllRemains[cmdr]) * 0.6
+		remainingTime := float64(overAllRemains[cmdr]) * onePirateTimeInSecs / 60
 		if remainingTime < 0 {
 			remainingTime = 0
 		}
