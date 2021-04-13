@@ -54,7 +54,7 @@ func hMissionAccepted(json UnstructuredJson) {
 				missionId,
 				json["Reward"].(float64),
 				faction,
-				json["KillCount"].(float64),
+				int64(json["KillCount"].(float64)),
 				currentCommanderName,
 				json["TargetFaction"].(string),
 				timestamp.Unix(),
@@ -208,7 +208,7 @@ func calcPirateMissions() {
 				pfield.KillCount = pfield.KillCount + v.KillCount
 				pfield.Reward = pfield.Reward + v.Reward
 				pfield.MissionCount++
-				pfield.AllRewards = pfield.AllRewards + " / " + FormatNumber(v.Reward)
+				pfield.AllRewards = pfield.AllRewards + " / " + FormatNumber(v.Reward)[:4] + " (" + strconv.FormatInt(v.KillCount, 10) + ")"
 				totalPirateactiveTradeMissionsDemand[v.CommanderName+"_"+v.Faction] = pfield
 			} else {
 				// just insert
@@ -218,7 +218,8 @@ func calcPirateMissions() {
 					v.CommanderName,
 					v.Faction,
 					1,
-					FormatNumber(v.Reward)}
+					FormatNumber(v.Reward)[:4] + " (" + strconv.FormatInt(v.KillCount, 10) + ")",
+				}
 			}
 		}
 
@@ -229,15 +230,15 @@ func calcPirateMissions() {
 		}
 		sort.Slice(keys, func(i, j int) bool { return totalPirateactiveTradeMissionsDemand[keys[i]].KillCount < totalPirateactiveTradeMissionsDemand[keys[j]].KillCount })
 
-		fmt.Printf("%34s, %4s, %4s, %15s, %75s\n", "Faction", "Kill", "Mssn", "Total", "Money Per Mission")
+		fmt.Printf("%34s, %4s, %4s, %15s, %69s\n", "Faction", "Kill", "Mssn", "Total", "Per Mission: millions (tgt cnt)")
 
 		totalReward := 0.0
-		totalKillCount := 0.0
+		var totalKillCount int64 = 0
 		totalMissions := 0
 		var maxKillCount int64 = 0
 		for _, key := range keys {
 			v := totalPirateactiveTradeMissionsDemand[key]
-			fmt.Printf("%34s, %4v, %4v, %15s, %75s\n", v.Faction, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
+			fmt.Printf("%34s, %4v, %4v, %15s, %69s\n", v.Faction, v.KillCount, v.MissionCount, FormatNumber(v.Reward), v.AllRewards)
 			totalReward += v.Reward
 			totalKillCount += v.KillCount
 			totalMissions += v.MissionCount
