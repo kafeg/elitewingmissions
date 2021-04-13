@@ -15,8 +15,8 @@ func eliteDirs() [2]string {
 // --- consts
 type UnstructuredJson map[string]interface{}
 type HandlerFunction func (json UnstructuredJson)
-const readIntervalInSecs = 3600 * 24 * 2 //last 3 days
-const onePirateTimeInSecs = 50 //seconds per one pirate, this is just for predict the future
+const readIntervalInSecs = 3600 * 24 * 3 //last 3 days
+const onePirateTimeInSecs = 90 //seconds per one pirate, this is just for predict the future
 
 // --- data structs
 type TradeMission struct {
