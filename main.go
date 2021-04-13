@@ -13,7 +13,6 @@ import (
 )
 
 // --- consts
-const eliteSavesDir = "C:\\Users\\v3133\\Saved Games\\Frontier Developments\\Elite Dangerous"
 type UnstructuredJson map[string]interface{}
 type HandlerFunction func (json UnstructuredJson)
 
@@ -47,41 +46,56 @@ var currentCommanderName string
 var bountiesTimestampsStart = make(map[string]int64)
 var bountiesTimestampsEnd = make(map[string]int64)
 
+func eliteDirs() [2]string {
+
+	var eliteDirs [2]string
+	eliteDirs[0] = "C:\\Users\\v3133\\Saved Games\\Frontier Developments\\Elite Dangerous"
+	eliteDirs[1] = "Y:\\Elite Dangerous"
+
+	//add here more dirs
+
+	return eliteDirs
+}
+
 // parser
 func handleEvents(handlers map[string] HandlerFunction) {
-	//parse each file and call handler for row if it exists
-	items, _ := ioutil.ReadDir(eliteSavesDir)
-	for _, item := range items {
-		if strings.HasPrefix(item.Name(), "Journal") && strings.HasSuffix(item.Name(), ".log") {
-			//fmt.Println(item.Name())
 
-			inFile, _ := os.Open(eliteSavesDir + "\\" + item.Name())
-			defer inFile.Close()
-			scanner := bufio.NewScanner(inFile)
-			scanner.Split(bufio.ScanLines)
+	for _, dir := range eliteDirs() {
 
-			for scanner.Scan() {
+		//parse each file and call handler for row if it exists
+		items, _ := ioutil.ReadDir(dir)
+		for _, item := range items {
+			if strings.HasPrefix(item.Name(), "Journal") && strings.HasSuffix(item.Name(), ".log") {
+				//fmt.Println(item.Name())
 
-				// optimize to prevent parse each event json
-				contains := false
-				for k, _ := range handlers {
-					if strings.Contains(scanner.Text(), k) {
-						contains = true
-						break
+				inFile, _ := os.Open(dir + "\\" + item.Name())
+				defer inFile.Close()
+				scanner := bufio.NewScanner(inFile)
+				scanner.Split(bufio.ScanLines)
+
+				for scanner.Scan() {
+
+					// optimize to prevent parse each event json
+					contains := false
+					for k, _ := range handlers {
+						if strings.Contains(scanner.Text(), k) {
+							contains = true
+							break
+						}
 					}
-				}
 
-				if !contains {
-					continue
-				}
-				// end of optimize
+					if !contains {
+						continue
+					}
+					// end of optimize
 
-				var result map[string]interface{}
-				json.Unmarshal([]byte(scanner.Text()), &result)
-				eventType := result["event"].(string)
-				if _, ok := handlers[eventType]; ok {
-					handlers[eventType](result)
-					//fmt.Println(eventType)
+					var result map[string]interface{}
+					json.Unmarshal([]byte(scanner.Text()), &result)
+					eventType := result["event"].(string)
+					if _, ok := handlers[eventType]; ok {
+						handlers[eventType](result)
+						//fmt.Println(eventType)
+					}
 				}
 			}
 		}
@@ -428,6 +442,7 @@ func recalcAll() {
 	//fmt.Println("victimFactions", victimFactions)
 
 	handlers = map[string] HandlerFunction {
+		"Commander": hCommander,
 		"Bounty": hBounty,
 	}
 
