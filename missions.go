@@ -15,6 +15,7 @@ var activePirateMissions = make(map[float64]PirateMission)
 var currentCommanderName string
 var bountiesCounts = make(map[string]int64)
 
+var cmdrsList []string
 var cmdrsCreditsCount = make(map[string]int64)
 var cmdrsCarriersCreditsCount = make(map[string]int64)
 
@@ -137,6 +138,18 @@ func hCommander(json UnstructuredJson) {
 	if _, ok := bountiesCounts[currentCommanderName]; !ok {
 		bountiesCounts[currentCommanderName] = 0 // initialize value
 	}
+
+	contains := false
+	for _, s := range cmdrsList {
+		if strings.Contains(currentCommanderName, s) {
+			contains = true
+			break
+		}
+	}
+
+	if !contains {
+		cmdrsList = append(cmdrsList, currentCommanderName)
+	}
 }
 
 func hLoadGame(json UnstructuredJson) {
@@ -207,8 +220,7 @@ func calcPirateMissions() {
 	overallTotalMissions := 0
 	overallTotalRewardX4 := 0.0
 
-	cmdrs := getCmdrsList(activePirateMissions)
-	for _, cmdr := range cmdrs {
+	for _, cmdr := range cmdrsList {
 		fmt.Println("--- CMDR", cmdr)
 		totalPirateactiveTradeMissionsDemand := make(map[string]PFields)
 		for _, v := range activePirateMissions {
@@ -276,7 +288,7 @@ func calcPirateMissions() {
 
 	fmt.Println("--- Total over all")
 	fmt.Printf("%34s, %4s, %4s, %6s, %32s, %5s\n", "CMDR", "Max", "Done", "Remain", "Missions collecting time", "Aprox")
-	for _, cmdr := range cmdrs {
+	for _, cmdr := range cmdrsList {
 		t1 := time.Unix(bountiesTimestamps[cmdr].Start, 0)
 		t1f := fmt.Sprintf("%02d-%02d %02d:%02d", t1.Month(), t1.Day(), t1.Hour(), t1.Minute())
 
@@ -297,16 +309,15 @@ func calcPirateMissions() {
 }
 
 func recalcStats() {
-	cmdrs := getCmdrsList(activePirateMissions)
-
 	var totalCmdrs int64 = 0
 	var totalCarriers int64 = 0
-	for _, cmdr := range cmdrs {
+	for _, cmdr := range cmdrsList {
 		fmt.Printf("%34s, %15v, %15v\n", cmdr, FormatNumberInt(cmdrsCreditsCount[cmdr]), FormatNumberInt(cmdrsCarriersCreditsCount[cmdr]))
 		totalCmdrs += cmdrsCreditsCount[cmdr]
 		totalCarriers += cmdrsCarriersCreditsCount[cmdr]
 	}
 	fmt.Printf("%34s, %15v, %15v\n", "Total", FormatNumberInt(totalCmdrs), FormatNumberInt(totalCarriers))
+	fmt.Println("")
 	fmt.Printf("%34s, %15v\n", "Overall Total", FormatNumberInt(totalCmdrs + totalCarriers))
 }
 

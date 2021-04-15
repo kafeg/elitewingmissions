@@ -34,7 +34,7 @@ func retrieveVictimFactions(pirateMissions map[float64]PirateMission) []string {
 	return victimFactions
 }
 
-func getCmdrsList(pirateMissions map[float64]PirateMission) []string {
+func getMissionsCmdrsList(pirateMissions map[float64]PirateMission) []string {
 	//add uniq cmdr to list
 	var cmdrs []string
 	for _, v := range pirateMissions {
@@ -60,8 +60,7 @@ func getCmdrsList(pirateMissions map[float64]PirateMission) []string {
 func retrieveBountyTimestamps(pirateMissions  map[float64]PirateMission) map[string]MissionPackTimestamp {
 
 	//get timestamp for active missions
-	cmdrs := getCmdrsList(pirateMissions)
-	for _, cmdr := range cmdrs {
+	for _, cmdr := range cmdrsList {
 		bountiesTimestamps[cmdr] = MissionPackTimestamp {time.Now().Unix(), 0}
 	}
 
@@ -119,12 +118,22 @@ func handleEvents(handlers map[string] HandlerFunction, transient bool) {
 	for _, dir := range eliteDirs() {
 
 		//parse each file and call handler for row if it exists
-		items, _ := ioutil.ReadDir(dir)
+		items, err := ioutil.ReadDir(dir)
+
+		if err != nil {
+			panic(err)
+		}
+
 		for _, item := range items {
 			if item.ModTime().Unix() > maxModTime && strings.HasPrefix(item.Name(), "Journal") && strings.HasSuffix(item.Name(), ".log") {
 				//fmt.Println(item.Name())
 
-				inFile, _ := os.Open(dir + "\\" + item.Name())
+				inFile, err := os.Open(dir + "\\" + item.Name())
+
+				if err != nil {
+					panic(err)
+				}
+
 				defer inFile.Close()
 				scanner := bufio.NewScanner(inFile)
 				scanner.Split(bufio.ScanLines)
