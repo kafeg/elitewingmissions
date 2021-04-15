@@ -11,8 +11,7 @@ import (
 	"time"
 )
 
-var victimFactions []string // append works on nil slices.
-func getVictimFactions(pirateMissions map[float64]PirateMission) []string {
+func retrieveVictimFactions(pirateMissions map[float64]PirateMission) []string {
 
 	if len(victimFactions) > 0 {
 		return victimFactions
@@ -58,12 +57,7 @@ func getCmdrsList(pirateMissions map[float64]PirateMission) []string {
 	return cmdrs
 }
 
-var bountiesTimestamps = make(map[string]MissionPackTimestamp)
-func getBountyTimestamps(pirateMissions  map[float64]PirateMission) map[string]MissionPackTimestamp {
-
-	if len(bountiesTimestamps) > 0 {
-		return bountiesTimestamps
-	}
+func retrieveBountyTimestamps(pirateMissions  map[float64]PirateMission) map[string]MissionPackTimestamp {
 
 	//get timestamp for active missions
 	cmdrs := getCmdrsList(pirateMissions)
@@ -115,9 +109,12 @@ func FormatNumberInt(n int64) string {
 }
 
 // parser
-func handleEvents(handlers map[string] HandlerFunction) {
+func handleEvents(handlers map[string] HandlerFunction, transient bool) {
 
-	maxModTime := time.Now().Unix() - readIntervalInSecs
+	maxModTime := time.Now().Unix() - readMissionsIntervalInSecs
+	if transient {
+		maxModTime = time.Now().Unix() - readTransientDataIntervalInSecs
+	}
 
 	for _, dir := range eliteDirs() {
 
