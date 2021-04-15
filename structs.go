@@ -5,7 +5,7 @@ func eliteDirs() [2]string {
 
 	var eliteDirs [2]string
 	eliteDirs[0] = "C:\\Users\\v3133\\Saved Games\\Frontier Developments\\Elite Dangerous"
-	eliteDirs[1] = "Y:\\Elite Dangerous"
+	eliteDirs[1] = "\\\\192.168.1.183\\vesta_elite_saves\\Elite Dangerous"
 
 	//add here more dirs
 
@@ -15,7 +15,7 @@ func eliteDirs() [2]string {
 // --- consts
 type UnstructuredJson map[string]interface{}
 type HandlerFunction func (json UnstructuredJson)
-const readMissionsIntervalInSecs = 3600 * 24 * 2 //last 2 days
+const readMissionsIntervalInSecs = 3600 * 24 * 3 //last 2 days
 const readTransientDataIntervalInSecs = 3600 * 1 //last 1 hour
 const onePirateTimeInSecs = 90 //seconds per one pirate, this is just for predict the future
 

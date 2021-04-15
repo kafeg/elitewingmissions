@@ -15,6 +15,9 @@ var activePirateMissions = make(map[float64]PirateMission)
 var currentCommanderName string
 var bountiesCounts = make(map[string]int64)
 
+var cmdrsCreditsCount = make(map[string]int64)
+var cmdrsCarriersCreditsCount = make(map[string]int64)
+
 // -- caches
 var bountiesTimestamps = make(map[string]MissionPackTimestamp)
 var victimFactions []string // append works on nil slices.
@@ -134,6 +137,14 @@ func hCommander(json UnstructuredJson) {
 	if _, ok := bountiesCounts[currentCommanderName]; !ok {
 		bountiesCounts[currentCommanderName] = 0 // initialize value
 	}
+}
+
+func hLoadGame(json UnstructuredJson) {
+	cmdrsCreditsCount[currentCommanderName] = int64(json["Credits"].(float64)) // always update
+}
+
+func hCarrierStats(json UnstructuredJson) {
+	cmdrsCarriersCreditsCount[currentCommanderName] = int64(json["Finance"].(map[string]interface {})["CarrierBalance"].(float64)) // always update
 }
 
 func hBounty(json UnstructuredJson) {
@@ -285,6 +296,20 @@ func calcPirateMissions() {
 	fmt.Println("")
 }
 
+func recalcStats() {
+	cmdrs := getCmdrsList(activePirateMissions)
+
+	var totalCmdrs int64 = 0
+	var totalCarriers int64 = 0
+	for _, cmdr := range cmdrs {
+		fmt.Printf("%34s, %15v, %15v\n", cmdr, cmdrsCreditsCount[cmdr], cmdrsCarriersCreditsCount[cmdr])
+		totalCmdrs += cmdrsCreditsCount[cmdr]
+		totalCarriers += cmdrsCarriersCreditsCount[cmdr]
+	}
+	fmt.Printf("%34s, %15v, %15v\n", "Total", totalCmdrs, totalCarriers)
+	fmt.Printf("%34s, %15v\n", "Overall Total", totalCmdrs + totalCarriers)
+}
+
 func recalcAllMissions() {
 
 	//handlers https://elite-journal.readthedocs.io
@@ -295,6 +320,8 @@ func recalcAllMissions() {
 		"MissionFailed": hMissionFailed,
 		"CargoDepot": hCargoDepot,
 		"Commander": hCommander,
+		"LoadGame": hLoadGame,
+		"CarrierStats": hCarrierStats,
 	}
 
 	handleEvents(handlers, false)
@@ -312,4 +339,6 @@ func recalcAllMissions() {
 	//calcTradeMissions()
 
 	calcPirateMissions()
+
+	recalcStats()
 }

@@ -112,9 +112,9 @@ func FormatNumberInt(n int64) string {
 func handleEvents(handlers map[string] HandlerFunction, transient bool) {
 
 	maxModTime := time.Now().Unix() - readMissionsIntervalInSecs
-	if transient {
-		maxModTime = time.Now().Unix() - readTransientDataIntervalInSecs
-	}
+	//if transient {
+	//	maxModTime = time.Now().Unix() - readTransientDataIntervalInSecs
+	//}
 
 	for _, dir := range eliteDirs() {
 
