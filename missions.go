@@ -302,12 +302,12 @@ func recalcStats() {
 	var totalCmdrs int64 = 0
 	var totalCarriers int64 = 0
 	for _, cmdr := range cmdrs {
-		fmt.Printf("%34s, %15v, %15v\n", cmdr, cmdrsCreditsCount[cmdr], cmdrsCarriersCreditsCount[cmdr])
+		fmt.Printf("%34s, %15v, %15v\n", cmdr, FormatNumberInt(cmdrsCreditsCount[cmdr]), FormatNumberInt(cmdrsCarriersCreditsCount[cmdr]))
 		totalCmdrs += cmdrsCreditsCount[cmdr]
 		totalCarriers += cmdrsCarriersCreditsCount[cmdr]
 	}
-	fmt.Printf("%34s, %15v, %15v\n", "Total", totalCmdrs, totalCarriers)
-	fmt.Printf("%34s, %15v\n", "Overall Total", totalCmdrs + totalCarriers)
+	fmt.Printf("%34s, %15v, %15v\n", "Total", FormatNumberInt(totalCmdrs), FormatNumberInt(totalCarriers))
+	fmt.Printf("%34s, %15v\n", "Overall Total", FormatNumberInt(totalCmdrs + totalCarriers))
 }
 
 func recalcAllMissions() {
